@@ -1,3 +1,8 @@
+
+def scannerHome;
+def sonar_url;
+def sonar_project_token;
+
 pipeline {
     agent any
     options {
@@ -12,7 +17,14 @@ pipeline {
                 checkout scm
             }
         }
-
+stages {
+        stage('static_code_analysis') {
+            steps {
+               scannerHome = tool 'SonarScanner'
+               sonar_url = "http://localhost:9000"
+               sonar_project_token = "a8f4df92f3619c9491eb279fbd997ab3bea88169"
+            }
+        }
         stage('Download Build Wrapper') {
             steps {
                 powershell '''
