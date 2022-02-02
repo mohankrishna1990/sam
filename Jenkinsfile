@@ -4,14 +4,13 @@ node {
   }
   stage('Download Build Wrapper') {
     powershell '''
-      $path = "$HOME/.sonar/build-wrapper-win-x86.zip"
-      rm build-wrapper-win-x86 -Recurse -Force -ErrorAction SilentlyContinue
-      rm $path -Force -ErrorAction SilentlyContinue
-      mkdir $HOME/.sonar
-      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-      (New-Object System.Net.WebClient).DownloadFile(http://localhost:9000/static/cpp/build-wrapper-win-x86.zip", $path)
-      Add-Type -AssemblyName System.IO.Compression.FileSystem
-      [System.IO.Compression.ZipFile]::ExtractToDirectory($path, "$HOME/.sonar")
+                  $path = ".sonar/build-wrapper-win-x86.zip"
+                  New-Item -ItemType directory -Path .sonar -Force
+                  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                  (New-Object System.Net.WebClient).DownloadFile("http://localhost:9000/static/cpp/build-wrapper-win-x86.zip", $path) <# Replace with your SonarQube server URL #>
+                  Add-Type -AssemblyName System.IO.Compression.FileSystem
+                  [System.IO.Compression.ZipFile]::ExtractToDirectory($path, ".sonar")
+                  $env:Path += ";.sonar/build-wrapper-win-x86"
     '''
   }
   stage('Build') {
