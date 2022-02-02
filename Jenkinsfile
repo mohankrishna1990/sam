@@ -1,71 +1,29 @@
-
-def scannerHome;
-def sonar_url;
-def sonar_project_token;
-
-pipeline {
-    agent any
-    options {
-        // This is required if you want to clean before build with the "Workspace Cleanup Plugin"
-        skipDefaultCheckout(true)
+node {
+  stage('SCM') {
+    checkout scm
+  }
+  stage('Download Build Wrapper') {
+    powershell '''
+      $path = "$HOME/.sonar/build-wrapper-win-x86.zip"
+      rm build-wrapper-win-x86 -Recurse -Force -ErrorAction SilentlyContinue
+      rm $path -Force -ErrorAction SilentlyContinue
+      mkdir $HOME/.sonar
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      (New-Object System.Net.WebClient).DownloadFile(http://localhost:9000/static/cpp/build-wrapper-win-x86.zip", $path)
+      Add-Type -AssemblyName System.IO.Compression.FileSystem
+      [System.IO.Compression.ZipFile]::ExtractToDirectory($path, "$HOME/.sonar")
+    '''
+  }
+  stage('Build') {
+    powershell '''
+      $env:Path += ";$HOME/.sonar/build-wrapper-win-x86"
+      build-wrapper-win-x86-64 --out-dir bw-output <your clean build command>
+    '''
+  }
+  stage('SonarQube Analysis') {
+    def scannerHome = tool 'SonarScanner';
+    withSonarQubeEnv() {
+      powershell "${scannerHome}/bin/sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output"
     }
-    stages {
-        stage('SCM') {
-            steps {
-                // Clean before build using the "Workspace Cleanup Plugin"
-                cleanWs()
-                checkout scm
-            }
-        }
-stages {
-        stage('static_code_analysis') {
-            steps {
-               scannerHome = tool 'SonarScanner'
-               sonar_url = "http://localhost:9000"
-               sonar_project_token = "a8f4df92f3619c9491eb279fbd997ab3bea88169"
-            }
-        }
-        stage('Download Build Wrapper') {
-            steps {
-                powershell '''
-                  $path = ".sonar/build-wrapper-win-x86.zip"
-                  New-Item -ItemType directory -Path .sonar -Force
-                  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                  (New-Object System.Net.WebClient).DownloadFile("http://localhost:9000/static/cpp/build-wrapper-win-x86.zip", $path) <# Replace with your SonarQube server URL #>
-                  Add-Type -AssemblyName System.IO.Compression.FileSystem
-                  [System.IO.Compression.ZipFile]::ExtractToDirectory($path, ".sonar")
-                  $env:Path += ";.sonar/build-wrapper-win-x86"
-                '''
-            }
-        }
-        stage('env') {
-            steps {
-            bat "set"
-            } 
-        }
-        stage('Build') {
-          
-            steps {
-                
-                powershell '''                  
-                  New-Item -ItemType directory -Path build
-                  cmake -S . -B build
-         
-                  build-wrapper-win-x86-64.exe --out-dir bw-output cmake --build build/ --config Release <# The build is clean thanks to the "cleanWs()" step #>
-                '''
-            }
-           
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner'; // Name of the SonarQube Scanner you created in "Global Tool Configuration" section
-                    withSonarQubeEnv() {
-                        powershell "${scannerHome}/bin/sonar-scanner"
-                    }
-                }
-            }
-        }
-    }
+  }
 }
