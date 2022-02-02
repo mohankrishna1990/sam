@@ -51,9 +51,9 @@ pipeline {
                     def scannerHome = tool 'SonarScanner'; // Name of the SonarQube Scanner you created in "Global Tool Configuration" section
                     withSonarQubeEnv() {
                         powershell "${scannerHome}/bin/sonar-scanner"
-                        SonarScanner.MSBuild.exe begin /k:"sam" /n:"My C# and C++ project" /v:"1.0" /d:sonar.cfamily.build-wrapper-output="build_wrapper_output_directory"
-                        build-wrapper-win-x86-64.exe --out-dir build_wrapper_output_directory MSBuild.exe /t:Rebuild
-                        SonarScanner.MSBuild.exe end
+                        bat "\"${scannerHome}\\SonarScanner.MSBuild.exe begin /k:"sam" /n:"My C# and C++ project" /v:"1.0" /d:sonar.cfamily.build-wrapper-output="build_wrapper_output_directory"
+                        bat "\"${msbuildHome}\\build-wrapper-win-x86-64.exe --out-dir build_wrapper_output_directory MSBuild.exe /t:Rebuild
+                        bat "\"${scannerHome}\\SonarScanner.MSBuild.exe end
                     }
                 }
             }
