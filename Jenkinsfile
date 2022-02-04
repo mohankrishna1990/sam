@@ -36,7 +36,8 @@ pipeline {
             steps {
                 
                 powershell '''                  
-                  $env:Path += ";$HOME/.sonar/build-wrapper-win-x86"
+                  New-Item -ItemType directory -Path build
+                  cmake -S . -B build
                   build-wrapper-win-x86-64.exe --out-dir bw-output cmake --build build/ --config Release <# The build is clean thanks to the "cleanWs()" step #>
                 '''
             }
@@ -48,7 +49,7 @@ pipeline {
                 script {
                     def scannerHome = tool 'SonarScanner'; // Name of the SonarQube Scanner you created in "Global Tool Configuration" section
                     withSonarQubeEnv() {
-                        powershell "${scannerHome}/bin/sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output"
+                        powershell "${scannerHome}/bin/sonar-scanner"
                         
                     }
                 }
