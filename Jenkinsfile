@@ -48,6 +48,7 @@ pipeline {
             steps {
                 script {
                     def scannerHome = tool 'SonarScanner'; // Name of the SonarQube Scanner you created in "Global Tool Configuration" section
+                    def sonar.projectKey=sam
                     withSonarQubeEnv() {
                         powershell "${scannerHome}/bin/sonar-scanner"
                         
