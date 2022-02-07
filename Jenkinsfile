@@ -36,9 +36,9 @@ pipeline {
             steps {
                 
                 powershell '''                  
-                  //New-Item -ItemType directory -Path build
-                  //cmake -S . -B build
-                  build-wrapper-win-x86-64.exe --out-dir bw-output cmake clean all
+                  New-Item -ItemType directory -Path build
+                  cmake -S . -B build
+                  build-wrapper-win-x86-64.exe --out-dir bw-output <your clean build command>
                 '''
             }
            
@@ -47,9 +47,10 @@ pipeline {
         stage('SonarQube') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarScanner'; // Name of the SonarQube Scanner you created in "Global Tool Configuration" section
-                    withSonarQubeEnv('SonarQube analysis') {
-                        powershell "${scannerHome}/bin/sonar-scanner"
+                    //def scannerHome = tool 'SonarScanner'; // Name of the SonarQube Scanner you created in "Global Tool Configuration" section
+                    withSonarQubeEnv('SonarQube analysis'){
+                        //powershell "${scannerHome}/bin/sonar-scanner"
+                        bat 'sonar-scanner.bat -D"sonar.projectKey=sam" -D"sonar.sources=." -D"sonar.cfamily.build-wrapper-output=bw-output" -D"sonar.host.url=http://localhost:9000" -D"sonar.login=ad8bf310520cfc1ab5fbdb05559744c88f6ccd1d"'
                         
                     }
                 }
