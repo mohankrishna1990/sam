@@ -20,9 +20,9 @@ node {
       build-wrapper-win-x86-64 --out-dir bw-output <your clean build command>
     '''
   }
-  stage('SonarQube Analysis') {
+  stage('SonarQube') {
     def scannerHome = tool 'SonarScanner';
-    withSonarQubeEnv() {
+    withSonarQubeEnv('SonarQube analysis') {
       powershell "${scannerHome}/bin/sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output"
     }
   }
