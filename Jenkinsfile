@@ -36,8 +36,8 @@ pipeline {
             steps {
                 
                 powershell '''                  
-                  New-Item -ItemType directory -Path build
-                  cmake -S . -B build
+                  //New-Item -ItemType directory -Path build
+                  //cmake -S . -B build
                   build-wrapper-win-x86-64.exe --out-dir bw-output cmake clean all
                 '''
             }
