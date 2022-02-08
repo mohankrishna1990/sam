@@ -1,6 +1,6 @@
 node {
   stage('SCM') {
-    checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'Git', url: 'https://github.com/mohankrishna1990/sam.git']]])
+    checkout scm
   }
   stage('Download Build Wrapper') {
     powershell '''
@@ -10,7 +10,6 @@ node {
       mkdir $HOME/.sonar
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       (New-Object System.Net.WebClient).DownloadFile(http://localhost:9000/static/cpp/build-wrapper-win-x86.zip", $path)
-      Add-Type -AssemblyName System.IO.Compression.FileSystem
       [System.IO.Compression.ZipFile]::ExtractToDirectory($path, "$HOME/.sonar")
     '''
   }
@@ -22,7 +21,7 @@ node {
   }
   stage('SonarQube') {
     def scannerHome = tool 'SonarScanner';
-    withSonarQubeEnv('SonarQube analysis') {
+    withSonarQubeEnv() {
       powershell "${scannerHome}/bin/sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output"
     }
   }
